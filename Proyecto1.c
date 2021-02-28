@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define NO_CARRETAS 10
+#define NO_CARRETAS 5
 #define NO_CAJAS 3
 
 typedef struct Cliente
 {
     int identificador;
-    int carreta;
+    struct Carreta *carreta;
     struct Cliente *siguiente;
 } Cliente;
 
@@ -38,6 +38,7 @@ typedef struct Cola
 {
     Cliente *primero;
     int conteo;
+    int longitud;
 } Cola;
 
 typedef struct Pila
@@ -77,12 +78,16 @@ void ingresarACicloCompras(Cliente *aIngresar)
 void imprimirClientes()
 {
     Cliente *temp = lista.primero;
+    if (temp!=NULL){
     do
     {
         printf("%i - ", temp->identificador);
         temp = temp->siguiente;
     } while (temp != lista.primero);
     printf("\n");
+    } else {
+        printf(" no hay clientes comprando\n");
+    }
 }
 int saleDeCompras()
 {
@@ -107,7 +112,7 @@ int saleDeCompras()
     }
     return id;
 }
-void eliminarClienteDeCompras(int numero)
+Cliente *eliminarClienteDeCompras(int numero)
 {
     Cliente *temp = lista.primero;
     Cliente *aux;
@@ -117,7 +122,7 @@ void eliminarClienteDeCompras(int numero)
         temp = temp->siguiente;
         lista.ultimo->siguiente = temp;
         lista.primero = temp;
-        free(aux);
+        return aux;
     }
     else
     {
@@ -127,7 +132,7 @@ void eliminarClienteDeCompras(int numero)
             {
                 aux = temp->siguiente;
                 temp->siguiente = temp->siguiente->siguiente;
-                free(aux);
+                return aux;
                 break;
             }
             else
@@ -150,6 +155,7 @@ void ingresarAColaEspera()
         nuevo->identificador = 1;
         cola_espera.conteo++;
         cola_espera.primero = nuevo;
+        cola_espera.longitud++;
     }
     else
     {
@@ -161,6 +167,7 @@ void ingresarAColaEspera()
         nuevo->identificador = cola_espera.conteo;
         cola_espera.conteo++;
         aux->siguiente = nuevo;
+        cola_espera.longitud++;
     }
 }
 Cliente *eliminarDeColaEspera()
@@ -189,12 +196,19 @@ Cliente *eliminarDeColaEspera()
 void imprimirCola(Cola imp)
 {
     Cliente *temp = imp.primero;
-    do
+    if (temp != NULL)
     {
-        printf("%i - ", temp->identificador);
-        temp = temp->siguiente;
-    } while (temp != NULL);
-    printf("\n");
+        do
+        {
+            printf("%i - ", temp->identificador);
+            temp = temp->siguiente;
+        } while (temp != NULL);
+        printf("\n");
+    }
+    else
+    {
+        printf(" no hay clientes esperando\n");
+    }
 }
 
 //Métodos de ingreso y obtención de las carretas
@@ -223,7 +237,9 @@ void ingresarCarreta1(int noCarreta, int pila_no)
             carreta_1.ultima = nueva;
             carreta_1.longitud++;
         }
-    } else {
+    }
+    else
+    {
         if (carreta_2.primera == NULL)
         {
             carreta_2.primera = nueva;
@@ -251,31 +267,123 @@ void crearPilas()
         int num = rand() % 2;
         if (num == 0)
         {
-            ingresarCarreta1(s + 1,num);
+            ingresarCarreta1(s + 1, num);
         }
         else
         {
-            ingresarCarreta1(s + 1,num);
+            ingresarCarreta1(s + 1, num);
         }
     }
 }
 void imprimirCarreta(Pila pil)
 {
     Carreta *temp = pil.primera;
-    do
+    if (temp != NULL)
     {
-        printf("%i - ", temp->no_carreta);
-        temp = temp->siguiente;
-    } while (temp != NULL);
-    printf("\n");
+        do
+        {
+            printf("%i - ", temp->no_carreta);
+            temp = temp->siguiente;
+        } while (temp != NULL);
+        printf("\n");
+    }
+    else
+    {
+        printf(" no quedan carretas aca\n");
+    }
+}
+void *agarrarCarreta()
+{
+    Carreta *aux;
+    Carreta *aux2;
+    if (carreta_1.longitud > 0)
+    {
+        aux = carreta_1.primera;
+        if (carreta_1.primera->siguiente == NULL)
+        {
+            Cliente *temp = eliminarDeColaEspera();
+            temp->carreta = aux;
+            carreta_1.primera = NULL;
+            carreta_1.ultima = NULL;
+            carreta_1.longitud--;
+            ingresarACicloCompras(temp);
+        }
+        else
+        {
+            while (aux->siguiente->siguiente != NULL)
+            {
+                aux = aux->siguiente;
+            }
+            Cliente *temp = eliminarDeColaEspera();
+            temp->carreta = carreta_1.ultima;
+            aux->siguiente = NULL;
+            carreta_1.longitud--;
+            carreta_1.ultima = aux;
+            ingresarACicloCompras(temp);
+        }
+    }
+    else
+    {
+        aux = carreta_2.primera;
+        if (carreta_2.primera->siguiente == NULL)
+        {
+            Cliente *temp = eliminarDeColaEspera();
+            temp->carreta = aux;
+            carreta_2.primera = NULL;
+            carreta_2.ultima = NULL;
+            carreta_2.longitud--;
+            ingresarACicloCompras(temp);
+        }
+        else
+        {
+            while (aux->siguiente->siguiente != NULL)
+            {
+                aux = aux->siguiente;
+            }
+            Cliente *temp = eliminarDeColaEspera();
+            temp->carreta = carreta_2.ultima;
+            aux->siguiente = NULL;
+            carreta_2.longitud--;
+            carreta_2.ultima = aux;
+            ingresarACicloCompras(temp);
+        }
+    }
+}
+
+//Metodos de insercion y eliminación para cola de pagos
+
+void ingresarAColaPagos(Cliente *ing)
+{
+    Cliente *nuevo = ing;
+    nuevo->siguiente = NULL;
+    Cliente *aux;
+    if (cola_pago.primero == NULL)
+    {
+        cola_pago.conteo = 1;
+        cola_pago.conteo++;
+        cola_pago.primero = nuevo;
+        cola_pago.longitud++;
+    }
+    else
+    {
+        aux = cola_pago.primero;
+        while (aux->siguiente != NULL)
+        {
+            aux = aux->siguiente;
+        }
+        cola_pago.conteo++;
+        aux->siguiente = nuevo;
+        cola_pago.longitud++;
+    }
 }
 int main()
 {
     crearPilas();
     int cuantos;
     printf("Cuantos clientes nuevos ingresan?\n");
-    scanf("%i",&cuantos);
-    for (int a = 0; a < cuantos; a++){
+    scanf("%i", &cuantos);
+    for (int a = 0; a < cuantos; a++)
+    {
         ingresarAColaEspera();
     }
     printf("Pila 1 de carretas: ");
@@ -284,11 +392,32 @@ int main()
     imprimirCarreta(carreta_2);
     printf("Clientes en espera: ");
     imprimirCola(cola_espera);
+    for (int o = 0; o < cola_espera.longitud; o++)
+    {
+        if (carreta_1.longitud > 0 || carreta_2.longitud > 0)
+        {
+            agarrarCarreta();
+        }
+    }
+    printf("Clientes que tienen carreta: ");
+    imprimirClientes();
+    printf("\n\n\n------------\n\n\n");
+    printf("Pila 1 de carretas: ");
+    imprimirCarreta(carreta_1);
+    printf("Pila 2 de carretas: ");
+    imprimirCarreta(carreta_2);
+    printf("Clientes en espera todavia: ");
+    imprimirCola(cola_espera);
+    printf("Clientes comprando: ");
+    imprimirClientes();
     //imprimirClientes();
-    //int sale = saleDeCompras();
-    //printf("El cliente que salio de comprar es: %i\n", sale);
-    //eliminarClienteDeCompras(sale);
-    //imprimirClientes();
+    int sale = saleDeCompras();
+    printf("El cliente que salio de comprar es: %i\n", sale);
+    ingresarAColaPagos(eliminarClienteDeCompras(sale));
+    printf("Clientes comprando: ");
+    imprimirClientes();
+    printf("Clientes en cola de pagos todavia: ");
+    imprimirCola(cola_pago);
     //system("dot -Tpng grafoPrueba.txt -o grafoPrueba.png");
     return 0;
 }
