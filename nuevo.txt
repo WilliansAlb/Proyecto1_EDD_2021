@@ -1,0 +1,70 @@
+digraph G{
+ rankdir=LR; graph [fontsize=10 fontname="Verdana"];
+node [shape=record fontsize=10 fontname="Verdana"];
+"Caja 1\nlibre"->"Caja 2\nlibre";
+"Caja 2\nlibre"->"Caja 3\nlibre";
+"Caja 2\nlibre"->"Caja 1\nlibre";
+"Caja 3\nlibre"->"Caja 4\nlibre";
+"Caja 3\nlibre"->"Caja 2\nlibre";
+"Caja 4\nlibre"->"Caja 5\nlibre";
+"Caja 4\nlibre"->"Caja 3\nlibre";
+"Caja 5\nlibre"->"Caja 6\nlibre";
+"Caja 5\nlibre"->"Caja 4\nlibre";
+"Caja 6\nlibre"->"Caja 7\nlibre";
+"Caja 6\nlibre"->"Caja 5\nlibre";
+"Caja 7\nlibre"->"Caja 8\nlibre";
+"Caja 7\nlibre"->"Caja 6\nlibre";
+"Caja 8\nlibre"->"Caja 9\nlibre";
+"Caja 8\nlibre"->"Caja 7\nlibre";
+"Caja 9\nlibre"->"Caja 10\nlibre";
+"Caja 9\nlibre"->"Caja 8\nlibre";
+"Caja 10\nlibre"->"Caja 9\nlibre";
+"Cliente 21"->"Cliente 22";
+"Cliente 22"->"Cliente 23";
+"Cliente 23"->"Cliente 24";
+"Cliente 24"->"Cliente 25";
+"Cliente 25"->"Cliente 26";
+"Cliente 26"->"Cliente 27";
+"Cliente 27"->"Cliente 28";
+"Cliente 28"->"Cliente 29";
+"Cliente 29"->"Cliente 30";
+subgraph cluster_0 {node [style=filled];"Cliente 21" 
+"Cliente 22" 
+"Cliente 23" 
+"Cliente 24" 
+"Cliente 25" 
+"Cliente 26" 
+"Cliente 27" 
+"Cliente 28" 
+"Cliente 29" 
+"Cliente 30" 
+;color=blue;label="Cola de espera";}"Cliente 11\nCarreta 41"->"Cliente 12\nCarreta 42";
+"Cliente 12\nCarreta 42"->"Cliente 13\nCarreta 43";
+"Cliente 13\nCarreta 43"->"Cliente 14\nCarreta 44";
+"Cliente 14\nCarreta 44"->"Cliente 15\nCarreta 45";
+"Cliente 15\nCarreta 45"->"Cliente 16\nCarreta 46";
+"Cliente 16\nCarreta 46"->"Cliente 17\nCarreta 47";
+"Cliente 17\nCarreta 47"->"Cliente 18\nCarreta 48";
+"Cliente 18\nCarreta 48"->"Cliente 19\nCarreta 49";
+"Cliente 19\nCarreta 49"->"Cliente 20\nCarreta 50";
+"Cliente 20\nCarreta 50"->"Cliente 11\nCarreta 41";
+"Cliente 1\nCarreta 21"->"Cliente 2\nCarreta 22";
+"Cliente 2\nCarreta 22"->"Cliente 3\nCarreta 23";
+"Cliente 3\nCarreta 23"->"Cliente 4\nCarreta 24";
+"Cliente 4\nCarreta 24"->"Cliente 5\nCarreta 25";
+"Cliente 5\nCarreta 25"->"Cliente 6\nCarreta 26";
+"Cliente 6\nCarreta 26"->"Cliente 7\nCarreta 27";
+"Cliente 7\nCarreta 27"->"Cliente 8\nCarreta 28";
+"Cliente 8\nCarreta 28"->"Cliente 9\nCarreta 29";
+"Cliente 9\nCarreta 29"->"Cliente 10\nCarreta 30";
+subgraph cluster_1 {node [style=filled];"Cliente 1\nCarreta 21" 
+"Cliente 2\nCarreta 22" 
+"Cliente 3\nCarreta 23" 
+"Cliente 4\nCarreta 24" 
+"Cliente 5\nCarreta 25" 
+"Cliente 6\nCarreta 26" 
+"Cliente 7\nCarreta 27" 
+"Cliente 8\nCarreta 28" 
+"Cliente 9\nCarreta 29" 
+"Cliente 10\nCarreta 30" 
+;color=blue;label="Cola de pago";}subgraph cluster_2 {node [style=filled]; "Caja 1\nlibre"  "Caja 2\nlibre"  "Caja 3\nlibre"  "Caja 4\nlibre"  "Caja 5\nlibre"  "Caja 6\nlibre"  "Caja 7\nlibre"  "Caja 8\nlibre"  "Caja 9\nlibre"  "Caja 10\nlibre" ;color=blue;label="Lista de cajas";}subgraph cluster_3 {node [style=filled]; "Cliente 11\nCarreta 41"  "Cliente 12\nCarreta 42"  "Cliente 13\nCarreta 43"  "Cliente 14\nCarreta 44"  "Cliente 15\nCarreta 45"  "Cliente 16\nCarreta 46"  "Cliente 17\nCarreta 47"  "Cliente 18\nCarreta 48"  "Cliente 19\nCarreta 49"  "Cliente 20\nCarreta 50" ;color=blue;label="Lista de compradores";}}

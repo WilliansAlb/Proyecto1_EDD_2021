@@ -1,0 +1,14 @@
+digraph G{
+ rankdir=LR; graph [fontsize=10 fontname="Verdana"];
+node [shape=record fontsize=10 fontname="Verdana"];
+"Caja 1\nlibre"->"Caja 2\nlibre";
+"Caja 2\nlibre"->"Caja 3\nlibre";
+"Caja 2\nlibre"->"Caja 1\nlibre";
+"Caja 3\nlibre"->"Caja 4\nlibre";
+"Caja 3\nlibre"->"Caja 2\nlibre";
+"Caja 4\nlibre"->"Caja 5\nlibre";
+"Caja 4\nlibre"->"Caja 3\nlibre";
+"Caja 5\nlibre"->"Caja 6\nlibre";
+"Caja 5\nlibre"->"Caja 4\nlibre";
+"Caja 6\nlibre"->"Caja 5\nlibre";
+}
