@@ -11,7 +11,6 @@ typedef struct Cliente
     struct Carreta *carreta;
     struct Cliente *siguiente;
 } Cliente;
-
 typedef struct Caja
 {
     int no_caja;
@@ -21,27 +20,23 @@ typedef struct Caja
     struct Caja *siguiente;
     struct Caja *anterior;
 } Caja;
-
 typedef struct Carreta
 {
     int no_carreta;
     struct Carreta *siguiente;
 } Carreta;
-
 typedef struct ListaClientes
 {
     Cliente *primero;
     Cliente *ultimo;
     int conteo;
 } ListaClientes;
-
 typedef struct Cola
 {
     Cliente *primero;
     int conteo;
     int longitud;
-} Cola;
-
+} Cola; 
 typedef struct Pila
 {
     Carreta *primera;
@@ -55,6 +50,8 @@ Cola cola_pago;
 Pila carreta_1;
 Pila carreta_2;
 Caja *cajas;
+char instruccion[100];
+char instruccion2[100];
 
 //Métodos de ingreso, obtención y eliminación de clientes que entran al bucle de compras
 void ingresarACicloCompras(Cliente *aIngresar)
@@ -79,9 +76,9 @@ void ingresarACicloCompras(Cliente *aIngresar)
 void imprimirClientes()
 {
     Cliente *temp = lista.primero;
-    FILE *archivo = fopen("nuevo.txt", "a");
     if (temp != NULL)
     {
+        FILE *archivo = fopen(instruccion, "a");
         do
         {
             if (temp->siguiente != NULL)
@@ -211,8 +208,7 @@ void imprimirColaEspera(Cola imp)
     Cliente *temp = imp.primero;
     if (temp != NULL)
     {
-        FILE *archivo = fopen("nuevo.txt", "a");
-        char linea[300] = {""};
+        FILE *archivo = fopen(instruccion, "a");
         do
         {
             if (temp->siguiente != NULL)
@@ -221,24 +217,11 @@ void imprimirColaEspera(Cola imp)
                 sprintf(str, "\"Cliente %i\"->\"Cliente %i\";\n",
                         temp->identificador,
                         temp->siguiente->identificador);
-                char str2[100];
-                sprintf(str2, "\"Cliente %i\" \n",
-                        temp->identificador);
-                strcat(linea, str2);
                 fputs(str, archivo);
-            }
-            else
-            {
-                char str2[100];
-                sprintf(str2, "\"Cliente %i\" \n",
-                        temp->identificador);
-                strcat(linea, str2);
             }
             temp = temp->siguiente;
         } while (temp != NULL);
-        fputs("subgraph cluster_0 {node [style=filled];", archivo);
-        fputs(linea, archivo);
-        fputs(";color=blue;label=\"Cola de espera\";}", archivo);
+        fputs("\n", archivo);
         fclose(archivo);
     }
     else
@@ -251,8 +234,7 @@ void imprimirColaPago(Cola imp)
     Cliente *temp = imp.primero;
     if (temp != NULL)
     {
-        FILE *archivo = fopen("nuevo.txt", "a");
-        char linea[1000] = {""};
+        FILE *archivo = fopen(instruccion, "a");
         do
         {
             if (temp->siguiente != NULL)
@@ -261,24 +243,11 @@ void imprimirColaPago(Cola imp)
                 sprintf(str, "\"Cliente %i\\nCarreta %i\"->\"Cliente %i\\nCarreta %i\";\n",
                         temp->identificador, temp->carreta->no_carreta,
                         temp->siguiente->identificador, temp->siguiente->carreta->no_carreta);
-                char str2[100];
-                sprintf(str2, "\"Cliente %i\\nCarreta %i\" \n",
-                        temp->identificador, temp->carreta->no_carreta);
-                strcat(linea, str2);
                 fputs(str, archivo);
-            }
-            else
-            {
-                char str2[100];
-                sprintf(str2, "\"Cliente %i\\nCarreta %i\" \n",
-                        temp->identificador, temp->carreta->no_carreta);
-                strcat(linea, str2);
             }
             temp = temp->siguiente;
         } while (temp != NULL);
-        fputs("subgraph cluster_1 {node [style=filled];", archivo);
-        fputs(linea, archivo);
-        fputs(";color=blue;label=\"Cola de pago\";}", archivo);
+        fputs("\n", archivo);
         fclose(archivo);
     }
     else
@@ -481,7 +450,7 @@ Cliente *popColaPago()
     }
 }
 //Metodos de insercion y eliminación de clientes de las cajas
-void ingresarCajas()
+void ingresarCajas() 
 {
     Caja *nueva = (Caja *)malloc(sizeof(Caja));
     nueva->no_caja = tamanioListaCajas() + 1;
@@ -527,7 +496,7 @@ int tamanioListaCajas()
 void imprimirListaCajas()
 {
     Caja *temp = cajas;
-    FILE *archivo = fopen("nuevo.txt", "a");
+    FILE *archivo = fopen(instruccion, "a");
     while (temp != NULL)
     {
         if (temp->anterior != NULL)
@@ -567,7 +536,7 @@ void imprimirListaCajas()
             else
             {
                 char str[50];
-                sprintf(str, "\"Caja %d\";", temp->no_caja);
+                sprintf(str, "\"Caja %d\\n%s\";", temp->no_caja,temp->estado);
                 fputs(str, archivo);
             }
         }
@@ -577,42 +546,154 @@ void imprimirListaCajas()
 }
 void agrupar()
 {
+    //Método para agrupar los items de la lista de cajas en un mismo recuadro en graphviz
     Caja *temp = cajas;
-    FILE *archivo = fopen("nuevo.txt", "a");
-    fputs("subgraph cluster_2 {node [style=filled];", archivo);
+    FILE *archivo = fopen(instruccion, "a");
+    fputs("\nsubgraph cluster_2 {\nnode [style=filled];\n", archivo);
     while (temp != NULL)
     {
         char str[100];
         sprintf(str, " \"Caja %d\\n%s\" ",
                 temp->no_caja, temp->estado);
-        fputs(str,archivo);
+        fputs(str, archivo);
         temp = temp->siguiente;
     }
-    fputs(";color=blue;label=\"Lista de cajas\";}", archivo);
+    fputs(";\ncolor=blue;\nlabel=\"Lista de cajas\";}\n", archivo);
     fclose(archivo);
 
+    //Método para agrupar los items de la lista de clientes en el ciclo de compras
     Cliente *temp2 = lista.primero;
-    FILE *archivo2 = fopen("nuevo.txt", "a");
-    fputs("subgraph cluster_3 {node [style=filled];", archivo2);
+    FILE *archivo2 = fopen(instruccion, "a");
+    fputs("\nsubgraph cluster_3 {\nnode [style=filled];\n", archivo2);
     if (temp2 != NULL)
     {
         do
         {
             if (temp2->siguiente != NULL)
             {
-                char str[400];
+                char str[100];
                 sprintf(str, " \"Cliente %i\\nCarreta %i\" ",
                         temp2->identificador, temp2->carreta->no_carreta);
                 fputs(str, archivo2);
             }
             temp2 = temp2->siguiente;
         } while (temp2 != lista.primero);
-        fputs(";color=blue;label=\"Lista de compradores\";}", archivo2);
+        fputs(";\ncolor=red;\nlabel=\"Lista de compradores\";}\n", archivo2);
         fclose(archivo2);
     }
     else
     {
         printf(" no hay clientes comprando\n");
+    }
+
+    Cliente *temp3 = cola_pago.primero;
+    if (temp3 != NULL)
+    {
+        FILE *archivo = fopen(instruccion, "a");
+        fputs("subgraph cluster_0 {node [style=filled];", archivo);
+        do
+        {
+            char str2[100];
+            sprintf(str2, "\"Cliente %i\\nCarreta %i\" \n",
+                    temp3->identificador, temp3->carreta->no_carreta);
+            fputs(str2, archivo);
+            temp3 = temp3->siguiente;
+        } while (temp3 != NULL);
+        fputs(";color=blue;label=\"Cola de pago\";}", archivo);
+        fclose(archivo);
+    }
+    else
+    {
+        printf(" no hay clientes esperando\n");
+    }
+
+    Cliente *temp4 = cola_espera.primero;
+    if (temp4 != NULL)
+    {
+        FILE *archivo = fopen(instruccion, "a");
+        fputs("subgraph cluster_1 {node [style=filled];", archivo);
+        do
+        {
+            char str2[100];
+            sprintf(str2, "\"Cliente %i\" \n",
+                    temp4->identificador);
+            fputs(str2, archivo);
+            temp4 = temp4->siguiente;
+        } while (temp4 != NULL);
+        fputs(";color=blue;label=\"Cola de espera\";}", archivo);
+        fclose(archivo);
+    }
+    else
+    {
+        printf(" no hay clientes esperando\n");
+    }
+    Carreta *temp5 = carreta_1.primera;
+    if (temp5 != NULL)
+    {
+        FILE *archivo = fopen(instruccion, "a");
+        fputs("\n node0[label=\"", archivo);
+        do
+        {
+            if (temp5->siguiente != NULL)
+            {
+                char str2[50];
+                sprintf(str2, " %i |",
+                        temp5->no_carreta);
+                fputs(str2, archivo);
+            }
+            else
+            {
+                char str2[50];
+                sprintf(str2, "%i",
+                        temp5->no_carreta);
+                fputs(str2, archivo);
+            }
+            temp5 = temp5->siguiente;
+        } while (temp5 != NULL);
+        fputs("\"];\n", archivo);
+        fputs("\nsubgraph cluster_4 {node [style=filled];rankdir=TB;node0;color=blue;label=\"Pila de carretas 1\";}\n", archivo);
+        fclose(archivo);
+    }
+    else
+    {
+        FILE *archivo = fopen(instruccion, "a");
+        fputs("\n node0[label=\"Pila vacia\"];\n", archivo);
+        fputs("\nsubgraph cluster_4 {node [style=filled];rankdir=TB;node0;color=blue;label=\"Pila de carretas 1\";}\n", archivo);
+        fclose(archivo);
+    }
+    Carreta *temp6 = carreta_2.primera;
+    if (temp6 != NULL)
+    {
+        FILE *archivo = fopen(instruccion, "a");
+        fputs("\n node1[label=\"", archivo);
+        do
+        {
+            if (temp6->siguiente != NULL)
+            {
+                char str2[50];
+                sprintf(str2, " %i |",
+                        temp6->no_carreta);
+                fputs(str2, archivo);
+            }
+            else
+            {
+                char str2[50];
+                sprintf(str2, "%i",
+                        temp6->no_carreta);
+                fputs(str2, archivo);
+            }
+            temp6 = temp6->siguiente;
+        } while (temp6 != NULL);
+        fputs("\"];\n", archivo);
+        fputs("\nsubgraph cluster_5 {node [style=filled];rankdir=TB;node1;color=blue;label=\"Pila de carretas 2\";}\n", archivo);
+        fclose(archivo);
+    }
+    else
+    {
+        FILE *archivo = fopen(instruccion, "a");
+        fputs("\n node1[label=\"Pila vacia\"];\n", archivo);
+        fputs("\nsubgraph cluster_5 {node [style=filled];rankdir=TB;node1;color=blue;label=\"Pila de carretas 2\";}\n", archivo);
+        fclose(archivo);
     }
 }
 
@@ -622,7 +703,7 @@ Cliente *crearNodoCliente()
 }
 void iniciarListas()
 {
-    FILE *archivo = fopen("nuevo.txt", "w");
+    FILE *archivo = fopen(instruccion, "w");
     fputs("digraph G{\n rankdir=LR; graph [fontsize=10 fontname=\"Verdana\"];\nnode [shape=record fontsize=10 fontname=\"Verdana\"];\n", archivo);
     fclose(archivo);
     int noCarretas1, noCarretas2, noClientesEspera, noClientesCompra, noClientesPago, noCajas;
@@ -674,26 +755,44 @@ void iniciarListas()
 }
 int main()
 {
+    int graficas = 0;
+    char aIntroducir[100];
+    sprintf(instruccion,"nuevo%i.txt",graficas);
+    sprintf(instruccion2,"nuevo%i.png",graficas);
     iniciarListas();
-    printf("\n\n\n------------\n\n\n");
-    printf("Pila 1 de carretas: ");
-    imprimirCarreta(carreta_1);
-    printf("Pila 2 de carretas: ");
-    imprimirCarreta(carreta_2);
-    printf("Clientes comprando: ");
-    printf("Puedes ver las cajas en el archivo png");
     imprimirListaCajas();
-    printf("Clientes en cola de espera todavia: ");
     imprimirColaEspera(cola_espera);
-    printf("Clientes comprando aun: ");
     imprimirClientes();
-    printf("Clientes en cola de espera todavia: ");
     imprimirColaPago(cola_pago);
     //system("dot -Tpng graficas.txt -o graficas.png");
-    //system("dot -Tpng ciclo.txt -o ciclo.png");
     agrupar();
-    FILE *archivo = fopen("nuevo.txt", "a");
+    FILE *archivo = fopen(instruccion, "a");
     fputs("}", archivo);
     fclose(archivo);
+    sprintf(aIntroducir,"dot -Tpng %s -o %s",instruccion,instruccion2);
+    system(aIntroducir);
+    graficas++;
+    sprintf(instruccion,"nuevo%i.txt",graficas);
+    sprintf(instruccion2,"nuevo%i.png",graficas);
+    FILE *archivo2 = fopen(instruccion, "w");
+    fputs("digraph G{\n rankdir=LR; graph [fontsize=10 fontname=\"Verdana\"];\nnode [shape=record fontsize=10 fontname=\"Verdana\"];\n", archivo2);
+    fclose(archivo2);
+    for (int o = 0; o < cola_espera.conteo-1; o++)
+    {
+        if (carreta_1.longitud > 0 || carreta_2.longitud > 0)
+        {
+            agarrarCarreta();
+        }
+    }
+    imprimirListaCajas();
+    imprimirColaEspera(cola_espera);
+    imprimirClientes();
+    imprimirColaPago(cola_pago);
+    agrupar();
+    FILE *archivo3 = fopen(instruccion, "a");
+    fputs("}", archivo3);
+    fclose(archivo3);
+    sprintf(aIntroducir,"dot -Tpng %s -o %s",instruccion,instruccion2);
+    system(aIntroducir);
     return 0;
 }
