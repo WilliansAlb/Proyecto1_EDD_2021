@@ -104,14 +104,14 @@ int saleDeCompras()
 {
     Cliente *temp = lista.primero;
     int num, id = -1;
+    srand(time(NULL));
     if (temp == NULL)
     {
-        printf("No hay personas comprando");
+        printf("\nNo hay personas comprando");
     }
     else
     {
-        srand(time(NULL));
-        num = rand() % (100 - 1) + 1;
+        num = rand() % (10 - 1) + 1;
         do
         {
             if (num == temp->identificador)
@@ -179,7 +179,7 @@ void ingresarAColaEspera()
     {
         cola_espera.conteo = 1;
         nuevo->identificador = cola_espera.longitud;
-        printf("\nEl cliente %i se sumo a la cola de espera",nuevo->identificador);
+        printf("\nEl cliente %i se sumo a la cola de espera", nuevo->identificador);
         cola_espera.conteo++;
         cola_espera.primero = nuevo;
         cola_espera.longitud++;
@@ -192,7 +192,7 @@ void ingresarAColaEspera()
             aux = aux->siguiente;
         }
         nuevo->identificador = cola_espera.longitud;
-        printf("\nEl cliente %i se sumo a la cola de espera",nuevo->identificador);
+        printf("\nEl cliente %i se sumo a la cola de espera", nuevo->identificador);
         cola_espera.conteo++;
         aux->siguiente = nuevo;
         cola_espera.longitud++;
@@ -286,6 +286,51 @@ void ingresarCarreta1(int noCarreta, int pila_no)
     Carreta *nueva = (Carreta *)malloc(sizeof(Carreta));
     Carreta *aux;
     nueva->no_carreta = noCarreta;
+    nueva->siguiente = NULL;
+    if (pila_no == 0)
+    {
+        if (carreta_1.primera == NULL)
+        {
+            carreta_1.primera = nueva;
+            carreta_1.ultima = nueva;
+            carreta_1.longitud++;
+        }
+        else
+        {
+            aux = carreta_1.primera;
+            while (aux->siguiente != NULL)
+            {
+                aux = aux->siguiente;
+            }
+            aux->siguiente = nueva;
+            carreta_1.ultima = nueva;
+            carreta_1.longitud++;
+        }
+    }
+    else
+    {
+        if (carreta_2.primera == NULL)
+        {
+            carreta_2.primera = nueva;
+            carreta_2.ultima = nueva;
+            carreta_2.longitud++;
+        }
+        else
+        {
+            aux = carreta_2.primera;
+            while (aux->siguiente != NULL)
+            {
+                aux = aux->siguiente;
+            }
+            aux->siguiente = nueva;
+            carreta_2.ultima = nueva;
+            carreta_2.longitud++;
+        }
+    }
+}
+void ingresarCarreta2(Carreta *nueva, int pila_no)
+{
+    Carreta *aux;
     nueva->siguiente = NULL;
     if (pila_no == 0)
     {
@@ -430,7 +475,7 @@ void ingresarAColaPagos(Cliente *ing)
     nuevo->siguiente = NULL;
     Cliente *aux;
     int noCaja = cajaLibre(ing);
-    if (noCaja != -1)
+    if (noCaja != -1 && cola_pago.longitud == 0)
     {
         printf("longitud cola %i", cola_pago.longitud);
         printf("\nEl cliente %i paso directamente a la caja %i por no haber cola de pago", ing->identificador, noCaja);
@@ -585,7 +630,7 @@ int cajaLibre(Cliente *aIngresar)
     Caja *temp = cajas;
     while (temp != NULL)
     {
-        if (temp->estado == "libre" && cola_pago.longitud == 0)
+        if (temp->estado == "libre")
         {
             temp->actual = aIngresar;
             temp->estado = "ocupado";
@@ -599,6 +644,63 @@ int cajaLibre(Cliente *aIngresar)
         }
     }
     return cajaAbierta;
+}
+int cajaLibre2()
+{
+    int cajaAbierta = -1;
+    Caja *temp = cajas;
+    while (temp != NULL)
+    {
+        if (temp->estado == "libre")
+        {
+            return temp->no_caja;
+            break;
+        }
+        else
+        {
+            temp = temp->siguiente;
+        }
+    }
+    return cajaAbierta;
+}
+void liberarCajas()
+{
+    Caja *temp = cajas;
+    srand(time(NULL));
+    while (temp != NULL)
+    {
+        if (temp->estado == "ocupado")
+        {
+            int num = rand() % 2;
+            if (num == 1)
+            {
+                int num2 = rand() % 10;
+                Cliente *aEliminar = temp->actual;
+                if (num2 < 5)
+                {
+                    printf("\nEl cliente %i termina de pagar, libera la caja %i y la carreta %i",
+                           aEliminar->identificador, temp->no_caja, aEliminar->carreta->no_carreta);
+                    ingresarCarreta2(aEliminar->carreta, 0);
+                    temp->estado = "libre";
+                    temp->tiempo_servicio++;
+                }
+                else
+                {
+                    printf("\nEl cliente %i termina de pagar, libera la caja %i y la carreta %i",
+                           aEliminar->identificador, temp->no_caja, aEliminar->carreta->no_carreta);
+                    ingresarCarreta2(aEliminar->carreta, 1);
+                    temp->estado = "libre";
+                    temp->tiempo_servicio++;
+                }
+                free(aEliminar);
+            }
+            temp = temp->siguiente;
+        }
+        else
+        {
+            temp = temp->siguiente;
+        }
+    }
 }
 
 void agrupar()
@@ -925,33 +1027,82 @@ void iniciarListas()
 int main()
 {
     char aIntroducir[100];
+    char pasos[100];
+    int cuantos = 0;
+    int salida = 0;
+    int opciones = 0;
     iniciarListas();
     graficar();
-    graficas++;
-    printf("*************************PASO 1**************************");
-    for (int o = 0; o < cola_espera.conteo - 1; o++)
+    printf("¿Cuántos clientes ingresan?");
+    scanf("%i", &cuantos);
+    while (salida == 0)
     {
-        if (carreta_1.longitud > 0 || carreta_2.longitud > 0)
+        graficas++;
+        sprintf(pasos, "*************************PASO %i**************************", graficas);
+        printf("\n\n");
+        printf(pasos);
+        printf("\n\n");
+        for (int i = 0; i < cuantos; i++)
         {
-            agarrarCarreta();
+            ingresarAColaEspera();
+        }
+        for (int o = 0; o < cola_espera.conteo - 1; o++)
+        {
+            if (carreta_1.longitud > 0 || carreta_2.longitud > 0)
+            {
+                agarrarCarreta();
+            }
+        }
+        int pasado = saleDeCompras();
+        if (pasado != -1)
+        {
+            ingresarAColaPagos(eliminarClienteDeCompras(pasado));
+        }
+        else
+        {
+            printf("\nNingun cliente sale de comprar en este paso");
+        }
+        if (cola_pago.longitud > 0)
+        {
+            int cantidad_inicial = cola_pago.longitud;
+            for (int i = 0; i < cantidad_inicial; i++)
+            {
+                int donde = cajaLibre2();
+                if (donde != -1)
+                {
+                    Cliente *tep = popColaPago();
+                    int donde2 = cajaLibre(tep);
+                    printf("\nEl cliente %i pasa a la caja %i", tep->identificador, donde2);
+                }
+            }
+        }
+        else
+        {
+            printf("\nNo hay personas haciendo cola para pagar");
+        }
+        liberarCajas();
+        printf("\n\nQue deseas realizar? -- Graficar y continuar con la simulacion (1) -- Graficar y terminar simulacion (2) -- Terminar la simulacion (3)");
+        printf("\n\n");
+        scanf("%i", &opciones);
+        switch (opciones)
+        {
+        case 1:
+            graficar();
+            printf("Cuantos clientes ingresan?  ");
+            scanf("%i", &cuantos);
+            break;
+        case 2:
+            graficar();
+            salida = 10;
+            break;
+        case 3:
+            salida = 10;
+            break;
+        default:
+            salida = 10;
+            break;
         }
     }
-    graficar();
-    graficas++;
-    for (int i = 0; i < 5; i++)
-    {
-        ingresarAColaEspera();
-    }
-    graficar();
-    graficas++;
-    int pasado = saleDeCompras();
-    if (pasado != -1)
-    {
-        ingresarAColaPagos(eliminarClienteDeCompras(pasado));
-        graficar();
-        graficas++;
-    } else {
-        printf("Ningun cliente sale de comprar en este paso");
-    }
+
     return 0;
 }
