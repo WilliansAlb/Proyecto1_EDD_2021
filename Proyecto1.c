@@ -111,7 +111,7 @@ int saleDeCompras()
     }
     else
     {
-        num = rand() % (10 - 1) + 1;
+        num = rand() % (100 - 1) + 1;
         do
         {
             if (num == temp->identificador)
