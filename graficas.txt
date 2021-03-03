@@ -1,14 +1,22 @@
-digraph G{
- rankdir=LR; graph [fontsize=10 fontname="Verdana"];
-node [shape=record fontsize=10 fontname="Verdana"];
-"Caja 1\nlibre"->"Caja 2\nlibre";
-"Caja 2\nlibre"->"Caja 3\nlibre";
-"Caja 2\nlibre"->"Caja 1\nlibre";
-"Caja 3\nlibre"->"Caja 4\nlibre";
-"Caja 3\nlibre"->"Caja 2\nlibre";
-"Caja 4\nlibre"->"Caja 5\nlibre";
-"Caja 4\nlibre"->"Caja 3\nlibre";
-"Caja 5\nlibre"->"Caja 6\nlibre";
-"Caja 5\nlibre"->"Caja 4\nlibre";
-"Caja 6\nlibre"->"Caja 5\nlibre";
+if (temp != NULL)
+{
+    FILE *archivo = fopen(instruccion, "a");
+    do
+    {
+        if (temp->siguiente != NULL)
+        {
+            char str[100];
+            sprintf(str, "\"Cliente %i\"->\"Cliente %i\";\n",
+                    temp->identificador,
+                    temp->siguiente->identificador);
+            fputs(str, archivo);
+        }
+        temp = temp->siguiente;
+    } while (temp != NULL);
+    fputs("\n", archivo);
+    fclose(archivo);
+}
+else
+{
+    printf(" no hay clientes esperando\n");
 }
