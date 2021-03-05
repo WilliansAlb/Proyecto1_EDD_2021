@@ -401,22 +401,6 @@ void ingresarCarreta2(Carreta *nueva, int pila_no)
         }
     }
 }
-void crearPilas()
-{
-    srand(time(NULL));
-    for (int s = 0; s < NO_CARRETAS; s++)
-    {
-        int num = rand() % 2;
-        if (num == 0)
-        {
-            ingresarCarreta1(s + 1, num);
-        }
-        else
-        {
-            ingresarCarreta1(s + 1, num);
-        }
-    }
-}
 void imprimirCarreta(Pila pil)
 {
     Carreta *temp = pil.primera;
