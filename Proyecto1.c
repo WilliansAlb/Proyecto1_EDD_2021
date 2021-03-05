@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#define NO_CARRETAS 5
-#define NO_CAJAS 3
 
 typedef struct Cliente
 {
@@ -53,6 +51,7 @@ Caja *cajas;
 char instruccion[100];
 char instruccion2[100];
 int graficas = 0;
+int asegurando = 1;
 
 //Métodos de ingreso, obtención y eliminación de clientes que entran al bucle de compras
 void ingresarACicloCompras(Cliente *aIngresar)
@@ -111,19 +110,46 @@ int saleDeCompras()
     }
     else
     {
-        num = rand() % (100 - 1) + 1;
-        do
+        if (asegurando != 0)
         {
-            if (num == temp->identificador)
+            for (int i = 1; i < 5; i++)
             {
-                id = num;
-                break;
+                num = rand() % ((25*i) - 1) + 1;
+                printf("%i", num);
+                do
+                {
+                    if (num == temp->identificador)
+                    {
+                        id = num;
+                        break;
+                    }
+                    else
+                    {
+                        temp = temp->siguiente;
+                    }
+                } while (temp != lista.primero);
+                if (id!=-1){
+                    break;
+                }
             }
-            else
+        }
+        else
+        {
+            num = rand() % (100 - 1) + 1;
+            printf("%i", num);
+            do
             {
-                temp = temp->siguiente;
-            }
-        } while (temp != lista.primero);
+                if (num == temp->identificador)
+                {
+                    id = num;
+                    break;
+                }
+                else
+                {
+                    temp = temp->siguiente;
+                }
+            } while (temp != lista.primero);
+        }
     }
     return id;
 }
@@ -207,12 +233,14 @@ Cliente *popColaEspera()
         {
             aux = cola_espera.primero;
             cola_espera.primero = NULL;
+            cola_espera.conteo--;
             return aux;
         }
         else
         {
             aux = cola_espera.primero;
             cola_espera.primero = cola_espera.primero->siguiente;
+            cola_espera.conteo--;
             return aux;
         }
     }
@@ -467,6 +495,45 @@ void agarrarCarreta()
         }
     }
 }
+int cajaLibre(Cliente *aIngresar)
+{
+    int cajaAbierta = -1;
+    Caja *temp = cajas;
+    while (temp != NULL)
+    {
+        if (temp->estado == "libre")
+        {
+            temp->actual = aIngresar;
+            temp->estado = "ocupado";
+            temp->tiempo_servicio++;
+            cajaAbierta = temp->no_caja;
+            break;
+        }
+        else
+        {
+            temp = temp->siguiente;
+        }
+    }
+    return cajaAbierta;
+}
+int cajaLibre2()
+{
+    int cajaAbierta = -1;
+    Caja *temp = cajas;
+    while (temp != NULL)
+    {
+        if (temp->estado == "libre")
+        {
+            return temp->no_caja;
+            break;
+        }
+        else
+        {
+            temp = temp->siguiente;
+        }
+    }
+    return cajaAbierta;
+}
 
 //Metodos de insercion y eliminación para cola de pagos
 void ingresarAColaPagos(Cliente *ing)
@@ -474,11 +541,11 @@ void ingresarAColaPagos(Cliente *ing)
     Cliente *nuevo = ing;
     nuevo->siguiente = NULL;
     Cliente *aux;
-    int noCaja = cajaLibre(ing);
+    int noCaja = cajaLibre2();
     if (noCaja != -1 && cola_pago.longitud == 0)
     {
-        printf("longitud cola %i", cola_pago.longitud);
-        printf("\nEl cliente %i paso directamente a la caja %i por no haber cola de pago", ing->identificador, noCaja);
+        int temp_caja = cajaLibre(nuevo);
+        printf("\nEl cliente %i paso directamente a la caja %i por no haber cola de pago", nuevo->identificador, temp_caja);
     }
     else
     {
@@ -486,7 +553,7 @@ void ingresarAColaPagos(Cliente *ing)
         {
             cola_pago.conteo = 1;
             cola_pago.conteo++;
-            printf("\nEl cliente %i se agrego a la cola de pago", nuevo->identificador);
+            printf("\nEl cliente %i inicio la cola de pago", nuevo->identificador);
             cola_pago.primero = nuevo;
             cola_pago.longitud++;
         }
@@ -529,6 +596,7 @@ Cliente *popColaPago()
         return NULL;
     }
 }
+
 //Metodos de insercion y eliminación de clientes de las cajas
 int tamanioListaCajas()
 {
@@ -624,45 +692,6 @@ void imprimirListaCajas()
     }
     fclose(archivo);
 }
-int cajaLibre(Cliente *aIngresar)
-{
-    int cajaAbierta = -1;
-    Caja *temp = cajas;
-    while (temp != NULL)
-    {
-        if (temp->estado == "libre")
-        {
-            temp->actual = aIngresar;
-            temp->estado = "ocupado";
-            temp->tiempo_servicio++;
-            cajaAbierta = temp->no_caja;
-            break;
-        }
-        else
-        {
-            temp = temp->siguiente;
-        }
-    }
-    return cajaAbierta;
-}
-int cajaLibre2()
-{
-    int cajaAbierta = -1;
-    Caja *temp = cajas;
-    while (temp != NULL)
-    {
-        if (temp->estado == "libre")
-        {
-            return temp->no_caja;
-            break;
-        }
-        else
-        {
-            temp = temp->siguiente;
-        }
-    }
-    return cajaAbierta;
-}
 void liberarCajas()
 {
     Caja *temp = cajas;
@@ -682,7 +711,6 @@ void liberarCajas()
                            aEliminar->identificador, temp->no_caja, aEliminar->carreta->no_carreta);
                     ingresarCarreta2(aEliminar->carreta, 0);
                     temp->estado = "libre";
-                    temp->tiempo_servicio++;
                 }
                 else
                 {
@@ -690,9 +718,13 @@ void liberarCajas()
                            aEliminar->identificador, temp->no_caja, aEliminar->carreta->no_carreta);
                     ingresarCarreta2(aEliminar->carreta, 1);
                     temp->estado = "libre";
-                    temp->tiempo_servicio++;
                 }
                 free(aEliminar);
+            }
+            else
+            {
+                printf("\nEl cliente %i con la carreta %i continua siendo atendido por la caja %i",
+                       temp->actual->identificador, temp->actual->carreta->no_carreta, temp->no_caja);
             }
             temp = temp->siguiente;
         }
@@ -714,8 +746,8 @@ void agrupar()
         while (temp != NULL)
         {
             char str[100];
-            sprintf(str, " \"Caja %d\\n%s\" ",
-                    temp->no_caja, temp->estado);
+            sprintf(str, " \"Caja %d\\n%s\\nTurno %i\" ",
+                    temp->no_caja, temp->estado, temp->tiempo_servicio);
             fputs(str, archivo);
             temp = temp->siguiente;
         }
@@ -785,7 +817,7 @@ void agrupar()
     Carreta *temp5 = carreta_1.primera;
     if (temp5 != NULL)
     {
-        fputs("\n node0[label=\"", archivo);
+        fputs("\n node0[label=\"{PILA 1|", archivo);
         do
         {
             if (temp5->siguiente != NULL)
@@ -804,18 +836,16 @@ void agrupar()
             }
             temp5 = temp5->siguiente;
         } while (temp5 != NULL);
-        fputs("\"];\n", archivo);
-        fputs("\nsubgraph cluster_4 {node [style=filled];rankdir=TB;node0;color=blue;label=\"Pila de carretas 1\";}\n", archivo);
+        fputs("}\"];\n", archivo);
     }
     else
     {
-        fputs("\n node0[label=\"VACIA\"];\n", archivo);
-        fputs("\nsubgraph cluster_4 {node [style=filled];rankdir=TB;node0;color=blue;label=\"Pila de carretas 1\";}\n", archivo);
+        fputs("\n node0[label=\"{PILA 1|VACIA}\"];\n", archivo);
     }
     Carreta *temp6 = carreta_2.primera;
     if (temp6 != NULL)
     {
-        fputs("\n node1[label=\"", archivo);
+        fputs("\n node1[label=\"{PILA 2|", archivo);
         do
         {
             if (temp6->siguiente != NULL)
@@ -834,14 +864,13 @@ void agrupar()
             }
             temp6 = temp6->siguiente;
         } while (temp6 != NULL);
-        fputs("\"];\n", archivo);
-        fputs("\nsubgraph cluster_5 {node [style=filled];rankdir=TB;node1;color=blue;label=\"Pila de carretas 2\";}\n", archivo);
+        fputs("}\"];\n", archivo);
     }
     else
     {
-        fputs("\n node1[label=\"VACIA\"];\n", archivo);
-        fputs("\nsubgraph cluster_5 {node [style=filled];rankdir=TB;node1;color=blue;label=\"Pila de carretas 2\";}\n", archivo);
+        fputs("\n node1[label=\"{PILA 2|VACIA}\"];\n", archivo);
     }
+    fputs("\nsubgraph cluster_4 {node [style=filled];rankdir=TB;node0 node1;color=blue;label=\"Pilas de carretas\";}\n", archivo);
     fclose(archivo);
     FILE *archivo3 = fopen(instruccion, "a");
     fputs("}", archivo3);
@@ -862,23 +891,23 @@ void graficar()
         {
             if (temp->siguiente != NULL)
             {
-                char str[50];
-                sprintf(str, "\"Caja %d\\n%s\"->\"Caja %d\\n%s\";\n",
-                        temp->no_caja, temp->estado,
-                        temp->siguiente->no_caja, temp->siguiente->estado);
-                char str1[50];
-                sprintf(str1, "\"Caja %d\\n%s\"->\"Caja %d\\n%s\";\n",
-                        temp->no_caja, temp->estado,
-                        temp->anterior->no_caja, temp->anterior->estado);
+                char str[150];
+                sprintf(str, "\"Caja %d\\n%s\\nTurno %i\"->\"Caja %d\\n%s\\nTurno %i\";\n",
+                        temp->no_caja, temp->estado, temp->tiempo_servicio,
+                        temp->siguiente->no_caja, temp->siguiente->estado, temp->siguiente->tiempo_servicio);
+                char str1[150];
+                sprintf(str1, "\"Caja %d\\n%s\\nTurno %i\"->\"Caja %d\\n%s\\nTurno %i\";\n",
+                        temp->no_caja, temp->estado, temp->tiempo_servicio,
+                        temp->anterior->no_caja, temp->anterior->estado, temp->anterior->tiempo_servicio);
                 fputs(str, archivo);
                 fputs(str1, archivo);
             }
             else
             {
-                char str[50];
-                sprintf(str, "\"Caja %d\\n%s\"->\"Caja %d\\n%s\";\n",
-                        temp->no_caja, temp->estado,
-                        temp->anterior->no_caja, temp->anterior->estado);
+                char str[150];
+                sprintf(str, "\"Caja %d\\n%s\\nTurno %d\"->\"Caja %d\\n%s\\nTurno %d\";\n",
+                        temp->no_caja, temp->estado, temp->tiempo_servicio,
+                        temp->anterior->no_caja, temp->anterior->estado, temp->anterior->tiempo_servicio);
                 fputs(str, archivo);
             }
         }
@@ -886,41 +915,20 @@ void graficar()
         {
             if (temp->siguiente != NULL)
             {
-                char str[50];
-                sprintf(str, "\"Caja %d\\n%s\"->\"Caja %d\\n%s\";\n",
-                        temp->no_caja, temp->estado,
-                        temp->siguiente->no_caja, temp->siguiente->estado);
+                char str[100];
+                sprintf(str, "\"Caja %d\\n%s\\nTurno %i\"->\"Caja %d\\n%s\\nTurno %i\";\n",
+                        temp->no_caja, temp->estado, temp->tiempo_servicio,
+                        temp->siguiente->no_caja, temp->siguiente->estado, temp->siguiente->tiempo_servicio);
                 fputs(str, archivo);
             }
             else
             {
-                char str[50];
-                sprintf(str, "\"Caja %d\\n%s\";", temp->no_caja, temp->estado);
+                char str[100];
+                sprintf(str, "\"Caja %d\\n%s\\nTurno %i\";", temp->no_caja, temp->estado, temp->tiempo_servicio);
                 fputs(str, archivo);
             }
         }
         temp = temp->siguiente;
-    }
-    Cliente *temp2 = cola_espera.primero;
-    if (temp2 != NULL)
-    {
-        do
-        {
-            if (temp2->siguiente != NULL)
-            {
-                char str[100];
-                sprintf(str, "\"Cliente %i\"->\"Cliente %i\";\n",
-                        temp2->identificador,
-                        temp2->siguiente->identificador);
-                fputs(str, archivo);
-            }
-            temp2 = temp2->siguiente;
-        } while (temp2 != NULL);
-        fputs("\n", archivo);
-    }
-    else
-    {
-        fputs("\n node2[label=\"VACIA\"];\n", archivo);
     }
     Cliente *temp3 = cola_pago.primero;
     if (temp3 != NULL)
@@ -963,6 +971,27 @@ void graficar()
     else
     {
         fputs("\n node4[label=\"VACIA\"];\n", archivo);
+    }
+    Cliente *temp2 = cola_espera.primero;
+    if (temp2 != NULL)
+    {
+        do
+        {
+            if (temp2->siguiente != NULL)
+            {
+                char str[100];
+                sprintf(str, "\"Cliente %i\"->\"Cliente %i\";\n",
+                        temp2->identificador,
+                        temp2->siguiente->identificador);
+                fputs(str, archivo);
+            }
+            temp2 = temp2->siguiente;
+        } while (temp2 != NULL);
+        fputs("\n", archivo);
+    }
+    else
+    {
+        fputs("\n node2[label=\"VACIA\"];\n", archivo);
     }
     fclose(archivo);
     agrupar();
@@ -1033,20 +1062,28 @@ int main()
     int opciones = 0;
     iniciarListas();
     graficar();
-    printf("¿Cuántos clientes ingresan?");
+    printf("\nCuantos clientes ingresan?");
     scanf("%i", &cuantos);
     while (salida == 0)
     {
         graficas++;
         sprintf(pasos, "*************************PASO %i**************************", graficas);
-        printf("\n\n");
+        printf("\n\n\n");
         printf(pasos);
-        printf("\n\n");
-        for (int i = 0; i < cuantos; i++)
+        if (cuantos != 0)
         {
-            ingresarAColaEspera();
+            for (int i = 0; i < cuantos; i++)
+            {
+                ingresarAColaEspera();
+            }
         }
-        for (int o = 0; o < cola_espera.conteo - 1; o++)
+        else
+        {
+            printf("\nNo entran nuevos clientes");
+        }
+
+        int temporal_cola = cola_espera.conteo - 1;
+        for (int o = 0; o < temporal_cola; o++)
         {
             if (carreta_1.longitud > 0 || carreta_2.longitud > 0)
             {
@@ -1062,6 +1099,7 @@ int main()
         {
             printf("\nNingun cliente sale de comprar en este paso");
         }
+        liberarCajas();
         if (cola_pago.longitud > 0)
         {
             int cantidad_inicial = cola_pago.longitud;
@@ -1080,9 +1118,8 @@ int main()
         {
             printf("\nNo hay personas haciendo cola para pagar");
         }
-        liberarCajas();
-        printf("\n\nQue deseas realizar? -- Graficar y continuar con la simulacion (1) -- Graficar y terminar simulacion (2) -- Terminar la simulacion (3)");
-        printf("\n\n");
+        printf("\n\nQue deseas realizar?\n");
+        printf("Graficar y continuar la simulacion (1) -- Solo continuar la simulacion (2) -- Graficar y terminar la simulacion (3)\n");
         scanf("%i", &opciones);
         switch (opciones)
         {
@@ -1092,10 +1129,11 @@ int main()
             scanf("%i", &cuantos);
             break;
         case 2:
-            graficar();
-            salida = 10;
+            printf("Cuantos clientes ingresan?  ");
+            scanf("%i", &cuantos);
             break;
         case 3:
+            graficar();
             salida = 10;
             break;
         default:
